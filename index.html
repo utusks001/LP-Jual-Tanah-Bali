@@ -92,7 +92,7 @@ img.src = (lang==="id") ? img.dataset.id : img.dataset.en;
 
 /* DYNAMIC ELEMENTS */
 updateViewer();
-updateChatPopup();
+
 }
 
 /* OPTIMIZED TRACKING FUNCTION */
@@ -144,7 +144,6 @@ if(viewerEl){
 }
 }
 
-
 </script>
 
 <style>
@@ -191,15 +190,7 @@ position:fixed;top:20px;left:20px;background:#fff;
 color:#333;padding:10px;border-radius:14px;z-index:999;
 }
 
-#chatPopup{
-position:fixed;bottom:80px;left:20px;background:#fff;
-color:#111;padding:10px;border-radius:14px;display:none;z-index:999;
-}
 
-#leadPopup{
-display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
-z-index:9999;align-items:center;justify-content:center;
-}
 
 .popup-box{
 background:#fff;padding:30px;border-radius:18px;text-align:center;color:#111;
@@ -286,7 +277,7 @@ background:#25D366;color:#fff;padding:14px;border-radius:12px;margin-top:20px;cu
 </div>
 
 <div id="viewer"></div>
-<div id="chatPopup"></div>
+
 
 <div class="hero">
 <div class="badge" data-id="EXCLUSIVE INVESTMENT OPPORTUNITY" data-en="EXCLUSIVE INVESTMENT OPPORTUNITY">EXCLUSIVE INVESTMENT OPPORTUNITY</div>
@@ -472,10 +463,10 @@ data-en="📍 VIEW LOCATION VIA GOOGLE MAPS">
 
 <div id="floatingWA" onclick="waInfo()" data-id="💬 Info Investasi Lebih Lanjut" data-en="💬 More Investment Info">💬 More Investment Info</div>
 
-
 <script>
 document.addEventListener("DOMContentLoaded",function(){
 setLang("en");
+updateViewer();
 
 
 // Autoplay video fix
@@ -488,6 +479,8 @@ if(video){
     video.play().catch(e => console.log("Autoplay blocked"));
 }
 });
+
+setInterval(updateViewer,4000);
 
 
 </script>
