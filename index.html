@@ -64,7 +64,9 @@ function driveVideoFallback(video){
   iframe.src = `https://drive.google.com/file/d/${id}/preview`;
   iframe.allow = "autoplay; fullscreen";
   iframe.allowFullscreen = true;
-  iframe.style.cssText = "width:100%;height:100%;border:0;display:block;";
+  iframe.style.cssText = video.classList.contains("gif-video")
+    ? "width:100%;aspect-ratio:16/9;border:0;display:block;border-radius:12px;"
+    : "width:100%;height:100%;border:0;display:block;";
   video.replaceWith(iframe);
 }
 
@@ -170,6 +172,7 @@ border-radius:12px;font-weight:700;display:inline-block;text-decoration:none;cur
 section{padding:40px 16px;max-width:900px;margin:auto;background:#f5f5f5;color:#111}
 h2{text-align:center;margin-bottom:12px}
 img{width:100%;border-radius:12px}
+.gif-video{width:100%;display:block;border-radius:12px;background:#000}
 
 .img-denah{width:70%;display:block;margin:0 auto 16px}
 .box{background:#fff;border-radius:16px;padding:12px}
@@ -312,7 +315,9 @@ data-en="Location & Access Overview">
 Location & Access Overview
 </h2>
 
-<img referrerpolicy="no-referrer" decoding="async" src="https://drive.google.com/thumbnail?id=1pbmpyomyC4TVZ901zuJ0zZIE0381SYQS&sz=w1600">
+<video class="gif-video" autoplay muted loop playsinline webkit-playsinline preload="auto" referrerpolicy="no-referrer" data-drive-id="13CS1lfkClhs7ZoUzytHaS0HmsBowmoJw">
+    <source src="https://drive.usercontent.google.com/download?id=13CS1lfkClhs7ZoUzytHaS0HmsBowmoJw&export=download&confirm=t" type="video/mp4">
+</video>
 
 <!-- GOOGLE MAPS BUTTON -->
 <div style="text-align:center;margin-top:18px;">
@@ -479,6 +484,15 @@ if(video){
     video.addEventListener("error", () => driveVideoFallback(video));
     video.play().catch(e => console.log("Autoplay blocked"));
 }
+
+// Video pengganti GIF: autoplay, mute, loop
+document.querySelectorAll("video.gif-video").forEach(v => {
+    v.muted = true;
+    const src = v.querySelector("source");
+    if(src) src.addEventListener("error", () => driveVideoFallback(v));
+    v.addEventListener("error", () => driveVideoFallback(v));
+    v.play().catch(e => console.log("Autoplay blocked"));
+});
 });
 
 setInterval(updateViewer,4000);
