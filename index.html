@@ -144,6 +144,7 @@ if(viewerEl){
 }
 }
 
+
 </script>
 
 <style>
@@ -471,11 +472,11 @@ data-en="📍 VIEW LOCATION VIA GOOGLE MAPS">
 
 <div id="floatingWA" onclick="waInfo()" data-id="💬 Info Investasi Lebih Lanjut" data-en="💬 More Investment Info">💬 More Investment Info</div>
 
+
 <script>
 document.addEventListener("DOMContentLoaded",function(){
 setLang("en");
-updateViewer();
-updateChatPopup();
+
 
 // Autoplay video fix
 const video = document.querySelector(".video-wrapper1 video");
@@ -488,21 +489,7 @@ if(video){
 }
 });
 
-setInterval(updateViewer,4000);
 
-setInterval(()=>{
-let p=document.getElementById("chatPopup");
-if(p){
-    updateChatPopup();
-    p.style.display="block";
-    setTimeout(()=>{p.style.display="none"},3000);
-}
-},7000);
-
-setTimeout(()=>{
-let lp = document.getElementById("leadPopup");
-if(lp) lp.style.display="flex";
-},10000);
 </script>
 
 </body>
