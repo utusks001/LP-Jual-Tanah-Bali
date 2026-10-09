@@ -237,6 +237,38 @@ background:#25D366;color:#fff;padding:14px;border-radius:12px;margin-top:20px;cu
     line-height:1.3;
     color:#000;
 }
+    .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Desain Tombol Akses Video */
+        .btn-gdrive {
+            display: inline-block;
+            background-color: #1a73e8; /* Warna Biru Khas Google */
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .btn-gdrive:hover {
+            background-color: #1557b0; /* Warna lebih gelap saat disentuh mause */
+        }
 </style>
 </head>
 
@@ -309,11 +341,17 @@ data-en="📍 VIEW LOCATION VIA GOOGLE MAPS">
         🔥 <strong>New Investor Magnet:</strong> TURYAPADA TOWER & WATERFALL
     </h2>
 
-<div class="video-wrapper1">
-    <video autoplay muted controls loop playsinline webkit-playsinline>
-        <source src="https://drive.google.com/file/d/12K1l5QWdS-7ldkvnFPrazssv6Rv_eKEa/view?usp=sharing" type="video/mp4">
-    </video>
-</div>
+    <div class="container">
+        <h2>Tonton Video Produk Kami</h2>
+        <p>Silakan klik tombol di bawah ini untuk melihat atau mengunduh video langsung dari Google Drive:</p>
+        
+        <!-- Link Google Drive Anda dipasang di sini -->
+        <a href="https://drive.google.com/file/d/12K1l5QWdS-7ldkvnFPrazssv6Rv_eKEa/view?usp=sharing" 
+           target="_blank" 
+           class="btn-gdrive">
+           Klik untuk Akses Video
+        </a>
+    </div>
 
 <div class="video-title1" data-id="Turyapada Tower" data-en="Turyapada Tower">Turyapada Tower</div>
 <br>
