@@ -25,7 +25,7 @@ fbq('track', 'PageView');
 <script>
 let currentLang = "id";
 
-/* ===== GOOGLE DRIVE MEDIA HELPERS (aman untuk GitHub Pages & Vercel) ===== */
+/* ===== GOOGLE DRIVE MEDIA HELPERS ===== */
 function driveId(url){
   const m = String(url||"").match(/(?:\/d\/|[?&]id=)([\w-]{20,})/);
   return m ? m[1] : null;
@@ -70,7 +70,7 @@ function generateEventID(){
 return 'evt_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
 }
 
-/* LANGUAGE SWITCHER (DIPERBARUI AGAR VIDEO IKUT BERGANTI) */
+/* LANGUAGE SWITCHER (DIOPTIMALKAN UNTUK VIDEO SWITCHING) */
 function setLang(lang){
 currentLang = lang;
 
@@ -87,16 +87,14 @@ img.dataset.try = "0";
 img.src = (lang==="id") ? img.dataset.id : img.dataset.en;
 });
 
-/* VIDEO SWITCHER */
-document.querySelectorAll("video source[data-en]").forEach(source=>{
-    const videoEl = source.closest("video");
-    if(videoEl){
-      const newSrc = (lang==="id") ? source.dataset.id : source.dataset.en;
-      if(source.src !== newSrc){
-        source.src = newSrc;
+/* VIDEO SWITCHER (DIUBAH LANGSUNG KE ATRIBUT SRC VIDEO) */
+document.querySelectorAll("video[data-en]").forEach(videoEl => {
+    const newSrc = (lang === "id") ? videoEl.dataset.id : videoEl.dataset.en;
+    const sourceEl = videoEl.querySelector("source");
+    if(sourceEl && sourceEl.src !== newSrc){
+        sourceEl.src = newSrc;
         videoEl.load();
         videoEl.play().catch(e => console.log("Autoplay blocked"));
-      }
     }
 });
 
@@ -316,11 +314,13 @@ data-id="📍 LIHAT LOKASI VIA GOOGLE MAPS" data-en="📍 VIEW LOCATION VIA GOOG
     🔥 <strong>Magnet Investor Baru:</strong> TURYAPADA TOWER & <br>AIR TERJUN
 </h2>
 
+<!-- VIDEO UTAMA DENGAN ATRIBUT data-id DAN data-en LANGSUNG PADA TAG <video> -->
 <div class="video-wrapper1">
-    <video autoplay muted controls loop playsinline webkit-playsinline preload="metadata" referrerpolicy="no-referrer" data-drive-id="12K1l5QWdS-7ldkvnFPrazssv6Rv_eKEa">
-        <source src="https://drive.usercontent.google.com/download?id=1w7O-rcaGcdYpxaKxWdxHK5HsJkjDb7Mt&export=download&confirm=t" type="video/mp4"
-         data-id="https://drive.usercontent.google.com/download?id=1w7O-rcaGcdYpxaKxWdxHK5HsJkjDb7Mt&export=download&confirm=t" type="video/mp4"
-         data-en="https://drive.usercontent.google.com/download?id=1UUUFnzP9212trHNgOJPfgI9kCElZsEkr&export=download&confirm=t" type="video/mp4">
+    <video autoplay muted controls loop playsinline webkit-playsinline preload="metadata" referrerpolicy="no-referrer" 
+           data-drive-id="12K1l5QWdS-7ldkvnFPrazssv6Rv_eKEa"
+           data-id="https://drive.usercontent.google.com/download?id=1w7O-rcaGcdYpxaKxWdxHK5HsJkjDb7Mt&export=download&confirm=t"
+           data-en="https://drive.usercontent.google.com/download?id=1UUUFnzP9212trHNgOJPfgI9kCElZsEkr&export=download&confirm=t">
+        <source src="https://drive.usercontent.google.com/download?id=1w7O-rcaGcdYpxaKxWdxHK5HsJkjDb7Mt&export=download&confirm=t" type="video/mp4">
     </video>
 </div>
 
