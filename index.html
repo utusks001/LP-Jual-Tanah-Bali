@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta name="facebook-domain-verification" content="j6bbln1ps0l0dfsrro6hao00cxuzkh" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="facebook-domain-verification" content="x2uuzy4e08n2skijnwv8zfea8wx2e4" />
 
 <title>Strategic Land North Bali | Premium Investment Opportunity</title>
 
@@ -24,7 +23,7 @@ fbq('track', 'PageView');
 </script>
 
 <script>
-let currentLang = "id";
+let currentLang = "en";
 
 /* ===== GOOGLE DRIVE MEDIA HELPERS ===== */
 function driveId(url){
@@ -83,11 +82,26 @@ updateViewer();
 
 /* =====================================================================
    VIDEO UTAMA
-   - Mode utama : <video> native (mp4 langsung) -> posisi & status play BISA dipertahankan
+   - Mode utama : <video> native (mp4 langsung) -> posisi & status play DIPERTAHANKAN
    - Cadangan   : iframe Google Drive bila mp4 gagal dimuat (posisi TIDAK bisa dipertahankan,
                   karena iframe Drive lintas-domain & tidak bisa dibaca/dikontrol dari halaman)
+
+   Alur saat toggle ID <-> EN:
+     1) CATAT  : currentTime + status (play / paused) video yang sedang tampil
+     2) GANTI  : src video ke bahasa baru
+     3) PULIHKAN setelah video baru siap (metadata -> canplay -> seek bila perlu):
+          - sebelumnya paused -> tetap paused (di detik yang sama)
+          - sebelumnya play   -> lanjut play dari detik yang sama
    ===================================================================== */
-const MV = { lang:null, failed:{id:false,en:false}, tryIdx:{id:0,en:0}, pendingTime:0, token:0, timer:null };
+const MV = {
+    lang:null,
+    failed:{id:false,en:false},
+    tryIdx:{id:0,en:0},
+    pendingTime:0,      // posisi yang SEDANG menunggu dipulihkan (video baru belum siap)
+    pendingPlay:true,   // status play yang SEDANG menunggu dipulihkan
+    token:0,
+    timer:null
+};
 
 function mvCandidates(wrap, lang){
     const u = (lang==="id") ? wrap.dataset.mp4Id : wrap.dataset.mp4En;
@@ -98,6 +112,7 @@ function mvShowFrame(wrap, lang){
     const video = document.getElementById("mainVideo");
     const frame = document.getElementById("mainVideoFrame");
     clearTimeout(MV.timer);
+    MV.token++;                         // batalkan semua listener video yang masih menunggu
     video.pause();
     video.removeAttribute("src");
     video.load();                       // hentikan unduhan & suara video native
@@ -118,27 +133,73 @@ function mvPlayNative(wrap, lang, url, keepTime, shouldPlay){
     const token = ++MV.token;
     clearTimeout(MV.timer);
 
+    // simpan status yang menunggu dipulihkan (dipakai bila user toggle lagi sebelum video siap)
+    MV.pendingTime = keepTime;
+    MV.pendingPlay = shouldPlay;
+
     // matikan iframe (dan suaranya) bila sebelumnya tampil
     if(frame.dataset.cur){ frame.src = "about:blank"; frame.dataset.cur = ""; }
     frame.hidden = true;
     video.hidden = false;
 
+    let target = 0;
+
     function cleanup(){
         video.removeEventListener("loadedmetadata", onMeta);
+        video.removeEventListener("canplay", onCanPlay);
+        video.removeEventListener("seeked", onSeeked);
         video.removeEventListener("error", onErr);
         clearTimeout(MV.timer);
     }
-    function onMeta(){
+
+    // 3) pulihkan status play / paused
+    function applyPlayState(){
         if(token !== MV.token) return;
         cleanup();
         MV.pendingTime = 0;
-        try{
-            if(keepTime > 0 && isFinite(video.duration)){
-                video.currentTime = Math.min(keepTime, Math.max(video.duration - 0.1, 0));
+        MV.pendingPlay = true;
+        if(shouldPlay){
+            const p = video.play();
+            if(p && p.catch){
+                p.catch(function(){
+                    // autoplay ditolak browser -> coba lagi dalam keadaan muted agar tetap lanjut play
+                    video.muted = true;
+                    video.play().catch(()=>{});
+                });
             }
-        }catch(e){}
-        if(shouldPlay){ video.play().catch(()=>{}); }
+        }else{
+            video.pause();              // sebelumnya paused -> tetap paused
+        }
     }
+
+    // 2) metadata siap -> lompat ke detik yang dicatat
+    function onMeta(){
+        if(token !== MV.token) return;
+        video.removeEventListener("loadedmetadata", onMeta);
+        clearTimeout(MV.timer);
+        if(keepTime > 0 && isFinite(video.duration)){
+            target = Math.min(keepTime, Math.max(video.duration - 0.1, 0));
+            try{ video.currentTime = target; }catch(e){}
+        }
+    }
+
+    // data cukup -> pastikan posisi benar (beberapa browser, mis. Safari/iOS, mengabaikan seek saat metadata)
+    function onCanPlay(){
+        if(token !== MV.token) return;
+        video.removeEventListener("canplay", onCanPlay);
+        if(target > 0 && Math.abs(video.currentTime - target) > 0.75){
+            video.addEventListener("seeked", onSeeked);
+            try{ video.currentTime = target; }catch(e){ applyPlayState(); }
+        }else{
+            applyPlayState();
+        }
+    }
+    function onSeeked(){
+        if(token !== MV.token) return;
+        video.removeEventListener("seeked", onSeeked);
+        applyPlayState();
+    }
+
     function onErr(){
         if(token !== MV.token) return;
         cleanup();
@@ -154,9 +215,11 @@ function mvPlayNative(wrap, lang, url, keepTime, shouldPlay){
     }
 
     video.addEventListener("loadedmetadata", onMeta);
+    video.addEventListener("canplay", onCanPlay);
     video.addEventListener("error", onErr);
     MV.timer = setTimeout(function(){ if(token===MV.token && video.readyState===0) onErr(); }, 15000);
 
+    video.pause();                      // pastikan tidak ada audio/gambar lama yang jalan selama sumber diganti
     video.src = url;
     video.load();
 }
@@ -167,16 +230,23 @@ function updateMainVideo(lang){
     if(!wrap || !video) return;
     if(MV.lang === lang) return;        // bahasa sama -> tidak ada reload, tidak berkedip
 
-    // 1) tangkap posisi & status play SEBELUM sumber diganti
+    // 1) CATAT posisi & status play SEBELUM sumber diganti
     let keepTime = 0, shouldPlay = true;            // default: pemuatan pertama = autoplay
     if(MV.lang !== null && !video.hidden){          // mode native
-        keepTime   = (video.readyState > 0) ? video.currentTime : MV.pendingTime;
-        shouldPlay = !video.paused && !video.ended; // sedang paused -> tetap paused
+        if(video.readyState > 0){
+            // video sedang tampil normal -> baca nilai sebenarnya
+            keepTime   = video.currentTime;
+            shouldPlay = !video.paused && !video.ended;   // sedang paused -> tetap paused
+        }else{
+            // video lama belum siap (toggle cepat berturut-turut) -> pakai catatan yang tertunda
+            // (video.paused selalu true selama load, jadi tidak boleh dipakai di sini)
+            keepTime   = MV.pendingTime;
+            shouldPlay = MV.pendingPlay || !video.paused;
+        }
     }
-    MV.pendingTime = keepTime;
     MV.lang = lang;
 
-    // 2) tampilkan sumber untuk bahasa baru
+    // 2) GANTI sumber ke bahasa baru, lalu pulihkan (lihat mvPlayNative)
     const list = mvCandidates(wrap, lang);
     if(list.length && !MV.failed[lang]){
         const url = list[Math.min(MV.tryIdx[lang], list.length-1)];
@@ -204,7 +274,7 @@ function trackLeadEvent(sourceName){
 /* WHATSAPP ACTIONS */
 function waInfo(){
 trackLeadEvent('info_button');
-let text = currentLang==="id"
+let text = currentLang==="en"
 ? "Halo, saya ingin info investasi tanah Bali Utara"
 : "Hello, I would like information about land investment in North Bali";
 window.open('https://wa.me/6281315373768?text='+encodeURIComponent(text),'_blank');
@@ -212,7 +282,7 @@ window.open('https://wa.me/6281315373768?text='+encodeURIComponent(text),'_blank
 
 function waSurvey(){
 trackLeadEvent('survey_button');
-let text = currentLang==="id"
+let text = currentLang==="en"
 ? "Halo, saya ingin jadwalkan survey lokasi tanah Bali Utara"
 : "Hello, I would like to schedule a land survey in North Bali";
 window.open('https://wa.me/6281315373768?text='+encodeURIComponent(text),'_blank');
@@ -342,6 +412,23 @@ color:#333;padding:10px;border-radius:14px;z-index:999;
     line-height:1.3;
     color:#000;
 }
+
+/* Penutup tombol pop-out Google Drive (pojok kanan atas pemutar) -> klik tidak bisa membuka Drive.
+   Ukuran bisa disesuaikan lewat variabel di bawah bila ikon belum tertutup penuh. */
+.drive-cover{
+    --drive-cover-w:64px;
+    --drive-cover-h:56px;
+    position:absolute;
+    top:0; right:0;
+    width:var(--drive-cover-w);
+    height:var(--drive-cover-h);
+    background:#000;
+    z-index:5;
+    display:block;
+}
+/* pemutar cadangan: penutup hanya tampil saat iframe Drive tampil (bukan saat video mp4 native yang jalan) */
+.video-wrapper1 .drive-cover{ display:none; }
+.video-wrapper1 #mainVideoFrame:not([hidden]) + .drive-cover{ display:block; }
 </style>
 </head>
 
@@ -382,12 +469,13 @@ data-en="https://drive.google.com/thumbnail?id=17AwgZo6XAiM_XMeMfAiDvAw2BKg1ozst
 <section>
 <h2 data-id="Overview Lokasi Strategis & Akses" data-en="Strategic Location & Access Overview">Overview Lokasi Strategis & Akses</h2>
 
-<div style="width:100%; aspect-ratio:16/9; overflow:hidden; border-radius:12px; background:#000;">
+<div style="width:100%; aspect-ratio:16/9; overflow:hidden; position:relative; border-radius:12px; background:#000;">
     <iframe src="https://drive.google.com/file/d/1EAD1PQmt5jmvoCUdsHMchWk08BKpU2kh/preview" 
             style="width:100%; height:100%; border:none; display:block;" 
             allow="autoplay; fullscreen" 
             allowfullscreen>
     </iframe>
+    <div class="drive-cover" aria-hidden="true"></div>
 </div>
 
 <div style="text-align:center;margin-top:18px;">
@@ -422,6 +510,7 @@ data-id="📍 LIHAT LOKASI VIA GOOGLE MAPS" data-en="📍 VIEW LOCATION VIA GOOG
             allow="autoplay; fullscreen"
             allowfullscreen>
     </iframe>
+    <div class="drive-cover" aria-hidden="true"></div>
 </div>
 
 <div class="video-title1" data-id="Ikonik Menara Turyapada" data-en="Turyapada Tower Iconic Landmark">Ikonik Menara Turyapada</div>
@@ -532,7 +621,7 @@ data-id="📍 LIHAT LOKASI VIA GOOGLE MAPS" data-en="📍 VIEW LOCATION VIA GOOG
 
 <script>
 document.addEventListener("DOMContentLoaded",function(){
-setLang("id");
+setLang("en");
 updateViewer();
 });
 
